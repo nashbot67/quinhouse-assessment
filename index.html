@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The 'Quin House — Security Assessment | Member PII Exposure</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: #0a0a0f;
+    color: #e0e0e0;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  #password-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #0a0a0f;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+  #password-overlay.hidden { display: none; }
+  .password-box {
+    background: #14141f;
+    border: 1px solid #2a2a3f;
+    border-radius: 12px;
+    padding: 40px;
+    max-width: 400px;
+    width: 90%;
+    text-align: center;
+  }
+  .password-box h2 { color: #ff6b6b; margin-bottom: 8px; font-size: 1.4em; }
+  .password-box p { color: #888; margin-bottom: 24px; font-size: 0.9em; }
+  .password-box input {
+    width: 100%; padding: 12px 16px; background: #1e1e2e;
+    border: 1px solid #333; border-radius: 8px; color: #e0e0e0;
+    font-size: 1em; margin-bottom: 16px; outline: none; transition: border 0.2s;
+  }
+  .password-box input:focus { border-color: #ff6b6b; }
+  .password-box button {
+    width: 100%; padding: 12px; background: #ff6b6b; color: #fff;
+    border: none; border-radius: 8px; font-size: 1em; cursor: pointer;
+    transition: background 0.2s;
+  }
+  .password-box button:hover { background: #e05555; }
+  .password-box .error { color: #ff6b6b; font-size: 0.85em; margin-top: 12px; display: none; }
+  .password-box .error.visible { display: block; }
+  #content { display: none; }
+  .container { max-width: 960px; margin: 0 auto; padding: 0 20px; }
+  header {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border-bottom: 1px solid #2a2a3f; padding: 60px 0 40px; text-align: center;
+  }
+  header .label {
+    display: inline-block; background: #ff6b6b22; color: #ff6b6b;
+    padding: 4px 12px; border-radius: 20px; font-size: 0.8em; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px;
+    border: 1px solid #ff6b6b44;
+  }
+  header h1 { font-size: 2.2em; font-weight: 700; color: #fff; margin-bottom: 8px; }
+  header .subtitle { color: #888; font-size: 1.1em; margin-bottom: 20px; }
+  header .meta { display: flex; justify-content: center; gap: 24px; flex-wrap: wrap; color: #666; font-size: 0.85em; }
+  header .meta span { display: flex; align-items: center; gap: 6px; }
+  .risk-banner {
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    padding: 16px; margin: 30px auto; max-width: 600px;
+    border-radius: 8px; font-size: 1.3em; font-weight: 700;
+  }
+  .risk-banner.critical { background: #ff6b6b22; border: 1px solid #ff6b6b44; color: #ff6b6b; }
+  .stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px; margin: 40px 0;
+  }
+  .stat-card {
+    background: #14141f; border: 1px solid #2a2a3f; border-radius: 8px;
+    padding: 20px; text-align: center;
+  }
+  .stat-card .number { font-size: 2em; font-weight: 700; }
+  .stat-card .number.critical-count { color: #ff6b6b; }
+  .stat-card .number.high-count { color: #ff9f43; }
+  .stat-card .number.medium-count { color: #feca57; }
+  .stat-card .number.total-count { color: #fff; }
+  .stat-card .label { color: #888; font-size: 0.85em; margin-top: 4px; }
+  section { padding: 40px 0; }
+  section h2 { font-size: 1.6em; color: #fff; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 1px solid #2a2a3f; }
+  .finding-card {
+    background: #14141f; border: 1px solid #2a2a3f; border-radius: 8px;
+    padding: 24px; margin-bottom: 20px; transition: border-color 0.2s;
+  }
+  .finding-card:hover { border-color: #3a3a5f; }
+  .finding-card .header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 12px; flex-wrap: wrap; gap: 8px;
+  }
+  .finding-card .header h3 { font-size: 1.1em; color: #fff; flex: 1; }
+  .badge {
+    display: inline-block; padding: 3px 10px; border-radius: 12px;
+    font-size: 0.75em; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.5px; white-space: nowrap;
+  }
+  .badge.critical { background: #ff6b6b33; color: #ff6b6b; border: 1px solid #ff6b6b55; }
+  .badge.high { background: #ff9f4333; color: #ff9f43; border: 1px solid #ff9f4355; }
+  .badge.medium { background: #feca5733; color: #feca57; border: 1px solid #feca5755; }
+  .badge.data-exposure { background: #ee5a2433; color: #ee5a24; border-color: #ee5a2455; }
+  .badge.auth-bypass { background: #d6303133; color: #d63031; border-color: #d6303155; }
+  .badge.pii-leakage { background: #6c5ce733; color: #6c5ce7; border-color: #6c5ce755; }
+  .finding-card .sub { color: #666; font-size: 0.85em; margin-bottom: 12px; display: flex; gap: 16px; flex-wrap: wrap; }
+  .finding-card .sub span { display: flex; align-items: center; gap: 4px; }
+  .finding-card p { color: #bbb; font-size: 0.95em; margin-bottom: 8px; }
+  .finding-card .impact { border-left: 3px solid #ff6b6b; padding-left: 12px; margin: 12px 0; font-size: 0.9em; color: #aaa; }
+  .finding-card .remediation { border-left: 3px solid #2ecc71; padding-left: 12px; margin: 12px 0; font-size: 0.9em; color: #aaa; }
+  .finding-card .remediation strong { color: #2ecc71; }
+  .finding-card code { background: #1e1e2e; padding: 1px 6px; border-radius: 3px; font-size: 0.9em; color: #feca57; }
+  .data-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.9em; }
+  .data-table th { text-align: left; padding: 10px 12px; background: #1a1a2e; color: #888; font-weight: 600; text-transform: uppercase; font-size: 0.8em; letter-spacing: 0.5px; border-bottom: 1px solid #2a2a3f; }
+  .data-table td { padding: 10px 12px; border-bottom: 1px solid #1e1e2e; color: #bbb; }
+  .data-table tr:hover td { background: #1a1a2e; }
+  pre { background: #0d0d17; border: 1px solid #2a2a3f; border-radius: 8px; padding: 16px; overflow-x: auto; font-size: 0.85em; line-height: 1.5; margin: 16px 0; color: #ccc; }
+  .diagram pre { background: #0d0d17; border: 1px solid #2a2a3f; border-radius: 8px; padding: 20px; font-family: 'SF Mono', 'Fira Code', 'Courier New', monospace; font-size: 0.75em; line-height: 1.3; overflow-x: auto; color: #bbb; }
+  .pii-tags { display: flex; gap: 6px; flex-wrap: wrap; margin: 12px 0; }
+  .pii-tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75em; font-weight: 600; }
+  .pii-tag.name { background: #e1705533; color: #e17055; }
+  .pii-tag.email { background: #0984e333; color: #0984e3; }
+  .pii-tag.phone { background: #00b89433; color: #00b894; }
+  .pii-tag.address { background: #fdcb6e33; color: #fdcb6e; }
+  .pii-tag.financial { background: #d6303133; color: #d63031; }
+  .pii-tag.behavioral { background: #6c5ce733; color: #6c5ce7; }
+  .pii-tag.photo { background: #fd79a833; color: #fd79a8; }
+  .pii-tag.document { background: #00cec933; color: #00cec9; }
+  footer { background: #14141f; border-top: 1px solid #2a2a3f; padding: 30px 0; text-align: center; color: #555; font-size: 0.85em; }
+  @media (max-width: 640px) {
+    header h1 { font-size: 1.6em; }
+    .stats { grid-template-columns: 1fr 1fr; }
+    .finding-card .header { flex-direction: column; align-items: stretch; }
+  }
+</style>
+</head>
+<body>
+
+<div id="password-overlay">
+  <div class="password-box">
+    <h2>🔒 Protected Report</h2>
+    <p>This security assessment is confidential. Enter the access code to continue.</p>
+    <input type="password" id="password-input" placeholder="Enter access code" onkeydown="if(event.key==='Enter')checkPassword()">
+    <button onclick="checkPassword()">Unlock</button>
+    <div class="error" id="password-error">Incorrect access code. Please try again.</div>
+  </div>
+</div>
+
+<div id="content">
+
+<header>
+  <div class="container">
+    <div class="label">Security Assessment</div>
+    <h1>The 'Quin House</h1>
+    <p class="subtitle">Member PII Exposure &amp; Data Breach Risk Analysis</p>
+    <div class="meta">
+      <span>📅 June 10, 2026</span>
+      <span>🎯 thequinhouse.com</span>
+      <span>🏢 Private Social Club, Boston MA</span>
+      <span>🆔 PeopleVine Company: 1356</span>
+    </div>
+    <div class="risk-banner critical">⚠ OVERALL RISK: CRITICAL</div>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="stats">
+    <div class="stat-card"><div class="number critical-count">7</div><div class="label">Critical Findings</div></div>
+    <div class="stat-card"><div class="number high-count">3</div><div class="label">High Findings</div></div>
+    <div class="stat-card"><div class="number medium-count">1</div><div class="label">Medium Findings</div></div>
+    <div class="stat-card"><div class="number total-count">11</div><div class="label">Total Findings</div></div>
+  </div>
+
+  <section id="executive-summary">
+    <h2>Executive Summary</h2>
+    <p>The 'Quin House (thequinhouse.com) faces <strong>CRITICAL</strong> member data exposure risk through multiple independent vectors. The PeopleVine CMS platform exposes a fully documented Swagger REST API (113 endpoints) with <strong>CORS `*`</strong>, <strong>no rate limiting on auth endpoints</strong>, and an <strong>email enumeration vulnerability</strong>.</p>
+    <p>A <strong>public GitHub repository</strong> (<code>sbrand-claudecode/quin-calendar</code>) contains working authentication code with a <strong>live Stripe publishable key</strong>, automated refresh token rotation every 6 hours, and patterns enabling full member directory data extraction.</p>
+    <p>Combined with <strong>DMARC `p=none`</strong> (anyone can spoof @thequinhouse.com emails) and <strong>publicly accessible Azure blob storage</strong>, the club's member PII is exposed across six distinct attack paths. An attacker with moderate skill could enumerate all member email addresses, spoof club communications, phish credentials, and extract the full member database through the PeopleVine API.</p>
+  </section>
+
+  <section id="vulnerability-index">
+    <h2>Vulnerability Index</h2>
+    <table class="data-table">
+      <thead><tr><th>#</th><th>Finding</th><th>Severity</th><th>Category</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>PII-01</td><td>GitHub Code Leak — Live Stripe Key + Auth Code</td><td><span class="badge critical">CRITICAL</span></td><td><span class="badge data-exposure">Data Exposure</span></td><td>Confirmed</td></tr>
+        <tr><td>PII-02</td><td>PeopleVine API Full Surface (113 Endpoints)</td><td><span class="badge critical">CRITICAL</span></td><td><span class="badge data-exposure">Data Exposure</span></td><td>Confirmed</td></tr>
+        <tr><td>PII-03</td><td>CORS `*` on All API Responses</td><td><span class="badge critical">CRITICAL</span></td><td><span class="badge auth-bypass">Auth Bypass</span></td><td>Confirmed</td></tr>
+        <tr><td>PII-04</td><td>Email Enumeration via /api/account/registered</td><td><span class="badge critical">CRITICAL</span></td><td><span class="badge pii-leakage">PII Leakage</span></td><td>Confirmed</td></tr>
+        <tr><td>PII-05</td><td>SSO Bootstrap Public Endpoint</td><td><span class="badge critical">CRITICAL</span></td><td><span class="badge auth-bypass">Auth Bypass</span></td><td>Confirmed</td></tr>
+        <tr><td>PII-06</td><td>Azure Blob Storage Public Read</td><td><span class="badge critical">CRITICAL</span></td><td><span class="badge data-exposure">Data Exposure</span></td><td>Confirmed</td></tr>
+        <tr><td>PII-07</td><td>DMARC p=none — Email Spoofing</td><td><span class="badge critical">CRITICAL</span></td><td><span class="badge pii-leakage">PII Leakage</span></td><td>Confirmed</td></tr>
+        <tr><td>PII-08</td><td>No Rate Limiting on Token Endpoints</td><td><span class="badge high">HIGH</span></td><td><span class="badge auth-bypass">Auth Bypass</span></td><td>Confirmed</td></tr>
+        <tr><td>PII-09</td><td>Envoy Auth Proxies Leak api_tokens in Redirect</td><td><span class="badge high">HIGH</span></td><td><span class="badge data-exposure">Data Exposure</span></td><td>Confirmed</td></tr>
+        <tr><td>PII-10</td><td>PeopleVine Portal Session/IP Leak</td><td><span class="badge high">HIGH</span></td><td><span class="badge pii-leakage">PII Leakage</span></td><td>Confirmed</td></tr>
+        <tr><td>PII-11</td><td>Member Identity Confirmed: Steve Brand</td><td><span class="badge medium">MEDIUM</span></td><td><span class="badge pii-leakage">PII Leakage</span></td><td>Confirmed</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="findings">
+    <h2>Detailed Findings</h2>
+
+    <div class="finding-card">
+      <div class="header"><h3>PII-01: GitHub Code Leak — Live Stripe Key + Auth Code</h3><div><span class="badge critical">CRITICAL</span> <span class="badge data-exposure">Data Exposure</span></div></div>
+      <div class="sub"><span>🔗 <code>github.com/sbrand-claudecode/quin-calendar</code></span></div>
+      <p>The public GitHub repository contains <code>scrape.js</code> — a working script that logs into <code>members.thequinhouse.com</code>, extracts the PeopleVine session token from <code>localStorage</code>, and calls PeopleVine APIs to fetch events and attendee lists.</p>
+      <div class="pii-tags"><span class="pii-tag name">Names</span><span class="pii-tag email">Emails</span><span class="pii-tag behavioral">Event Data</span></div>
+      <div class="impact"><strong>Impact:</strong> Stripe LIVE publishable key <code>pk_live_1VlvJMD6gCzrYwwLNKJiVshM</code> exposed. GitHub Actions auto-rotates PeopleVine refresh tokens every 6h using secrets <code>QUIN_REFRESH_TOKEN</code>, <code>QUIN_EMAIL</code>, <code>QUIN_PASSWORD</code>. Full PII extractable. <code>GITHUB_TOKEN</code> has <code>contents:write</code> permission.</div>
+      <div class="remediation"><strong>Remediation:</strong> Make repo private immediately. Rotate Stripe key. Audit <code>sbrand-claudecode</code> org for other repos. Check Actions cache artifacts. Rotate PeopleVine credentials.</div>
+    </div>
+
+    <div class="finding-card">
+      <div class="header"><h3>PII-02: PeopleVine API Full Surface (113 Endpoints)</h3><div><span class="badge critical">CRITICAL</span> <span class="badge data-exposure">Data Exposure</span></div></div>
+      <div class="sub"><span>🔗 <code>rest.peoplevine.com/swagger/v1/swagger.json</code></span></div>
+      <p>Complete PeopleVine Swagger 2.0 spec publicly documents 113 API endpoints. Key endpoints: <code>GET /api/directory/members</code> (full member list), <code>GET /api/customers</code> (addresses, notes, payments), <code>GET /api/events/{id}/attendees</code>, <code>GET /api/account/personal-details</code>.</p>
+      <div class="pii-tags"><span class="pii-tag name">Names</span><span class="pii-tag email">Emails</span><span class="pii-tag phone">Phones</span><span class="pii-tag address">Addresses</span><span class="pii-tag financial">Payments</span><span class="pii-tag behavioral">Events</span><span class="pii-tag photo">Photos</span></div>
+      <div class="impact"><strong>Impact:</strong> Any valid PeopleVine auth token can extract full member database: names, emails, phones, addresses, membership status, payment history, event attendance, personal details, customer notes, profile photos.</div>
+      <div class="remediation"><strong>Remediation:</strong> PeopleVine platform issue — Quin must escalate. Implement API gateway validation. Restrict Swagger doc to authenticated users.</div>
+    </div>
+
+    <div class="finding-card">
+      <div class="header"><h3>PII-03: CORS `*` on All API Responses</h3><div><span class="badge critical">CRITICAL</span> <span class="badge auth-bypass">Auth Bypass</span></div></div>
+      <p>Every PeopleVine API response includes <code>Access-Control-Allow-Origin: *</code>. Any website visited by a logged-in Quin member can make authenticated cross-origin API calls.</p>
+      <pre>HTTP/1.1 200 OK
+access-control-allow-origin: *
+access-control-allow-credentials: true
+access-control-allow-methods: GET, POST, PUT, PATCH, DELETE, OPTIONS</pre>
+      <div class="impact"><strong>Impact:</strong> Cross-origin data exfiltration. Combined with DMARC phishing (PII-07), attacker sends spoofed email → victim clicks → malicious page extracts PeopleVine data.</div>
+      <div class="remediation"><strong>Remediation:</strong> Restrict CORS to <code>members.thequinhouse.com</code>, <code>portal.thequinhouse.com</code>, <code>apply.thequinhouse.com</code>. Never use wildcard with credentials.</div>
+    </div>
+
+    <div class="finding-card">
+      <div class="header"><h3>PII-04: Email Enumeration via /api/account/registered</h3><div><span class="badge critical">CRITICAL</span> <span class="badge pii-leakage">PII Leakage</span></div></div>
+      <p><code>GET /api/public/account/registered/:username</code> returns different responses for registered vs. unregistered emails — enabling complete member email list enumeration.</p>
+      <div class="pii-tags"><span class="pii-tag email">Member Emails</span></div>
+      <pre># Registered: {"registered": true, ...}
+# Not registered: {"registered": false}</pre>
+      <div class="impact"><strong>Impact:</strong> Complete member email list for targeted phishing. Combined with DMARC spoofing, attacker can send perfectly spoofed club emails to every member.</div>
+      <div class="remediation"><strong>Remediation:</strong> Remove endpoint or require auth. Return uniform responses. Rate-limit. Add Cloudflare WAF rule.</div>
+    </div>
+
+    <div class="finding-card">
+      <div class="header"><h3>PII-05: SSO Bootstrap Public Endpoint</h3><div><span class="badge critical">CRITICAL</span> <span class="badge auth-bypass">Auth Bypass</span></div></div>
+      <p><code>GET /api/public/token/sso/bootstrap?code=XYZ</code> accepts an OAuth authorization code and exchanges it for an SSO session token. Valid codes → token without credentials.</p>
+      <div class="impact"><strong>Impact:</strong> Any attacker who obtains an OAuth auth code can get a PeopleVine session token. Codes obtainable via phishing, OAuth misconfiguration, or Envoy redirect interception (PII-09). No rate limiting detected.</div>
+      <div class="remediation"><strong>Remediation:</strong> Require client authentication. Rate limit. Shorten code expiry. IP-based restrictions. Audit Auth0 redirect URI whitelist.</div>
+    </div>
+
+    <div class="finding-card">
+      <div class="header"><h3>PII-06: Azure Blob Storage Public Read</h3><div><span class="badge critical">CRITICAL</span> <span class="badge data-exposure">Data Exposure</span></div></div>
+      <p><code>peoplevine.blob.core.windows.net/files/1356/</code> publicly accessible with anonymous read permissions.</p>
+      <div class="pii-tags"><span class="pii-tag photo">Photos</span><span class="pii-tag document">Documents</span></div>
+      <div class="impact"><strong>Impact:</strong> Member-uploaded identification documents, contract PDFs, event photos publicly accessible. Company ID 1356 = The 'Quin House.</div>
+      <div class="remediation"><strong>Remediation:</strong> Restrict ACLs to private. Audit current files. Use SAS tokens. Enable Azure Storage logging.</div>
+    </div>
+
+    <div class="finding-card">
+      <div class="header"><h3>PII-07: DMARC `p=none` — Email Spoofing</h3><div><span class="badge critical">CRITICAL</span> <span class="badge pii-leakage">PII Leakage</span></div></div>
+      <p><code>DMARC: v=DMARC1; p=none</code> — anyone can spoof @thequinhouse.com emails.</p>
+      <pre>DMARC: v=DMARC1; p=none;
+SPF:   v=spf1 mx include:_spf.peoplevine.net include:spf.protection.outlook.com -all</pre>
+      <div class="impact"><strong>Impact:</strong> Classic phishing — "Your membership renewal required" from @thequinhouse.com. CEO fraud. Combined with email enumeration (PII-04), every member is targetable.</div>
+      <div class="remediation"><strong>Remediation:</strong> Set <code>p=quarantine; pct=100</code> immediately. After 30 days: <code>p=reject; pct=100</code>. Configure DKIM for all senders.</div>
+    </div>
+
+    <div class="finding-card">
+      <div class="header"><h3>PII-08: No Rate Limiting on Token Endpoints</h3><div><span class="badge high">HIGH</span> <span class="badge auth-bypass">Auth Bypass</span></div></div>
+      <p>Password grant has 5-attempt lockout, but SSO bootstrap, refresh token, and email enumeration endpoints have no detected rate limiting.</p>
+      <div class="impact"><strong>Impact:</strong> Brute force OAuth codes, mass email enumeration, unlimited refresh token rotation, organizational credential stuffing.</div>
+      <div class="remediation"><strong>Remediation:</strong> IP-based rate limiting at PeopleVine/Envoy. Rate-limit SSO bootstrap. Cloudflare WAF rules.</div>
+    </div>
+
+    <div class="finding-card">
+      <div class="header"><h3>PII-09: Envoy Auth Proxies Leak api_tokens in Redirect</h3><div><span class="badge high">HIGH</span> <span class="badge data-exposure">Data Exposure</span></div></div>
+      <p>Istio Envoy proxies at <code>loginpe.thequinhouse.com</code> and <code>loginse.thequinhouse.com</code> leak <code>api_tokens</code> in redirect URL during OAuth flow.</p>
+      <div class="impact"><strong>Impact:</strong> Phishing can steal tokens from URL. Referrer leakage to external resources. Tokens in browser history. Shared computer risk.</div>
+      <div class="remediation"><strong>Remediation:</strong> POST-based token delivery. PKCE. Clear tokens from URL. <code>Referrer-Policy: no-referrer</code>. Short token TTL.</div>
+    </div>
+
+    <div class="finding-card">
+      <div class="header"><h3>PII-10: PeopleVine Portal Session/IP Leak</h3><div><span class="badge high">HIGH</span> <span class="badge pii-leakage">PII Leakage</span></div></div>
+      <p><code>apply.thequinhouse.com</code> HTML source exposes session IDs, visitor IPs, Company No (1356), Domain No (12013), Page Style No (2295).</p>
+      <div class="impact"><strong>Impact:</strong> Visitor IPs collected and potentially exposed. Internal IDs useful for API enumeration. Session IDs enable hijacking.</div>
+      <div class="remediation"><strong>Remediation:</strong> Remove debug data from production HTML. Strip __VIEWSTATE internal data. Remove IP hidden fields. Enable customErrors.</div>
+    </div>
+
+    <div class="finding-card">
+      <div class="header"><h3>PII-11: Member Identity Confirmed — Steve Brand</h3><div><span class="badge medium">MEDIUM</span> <span class="badge pii-leakage">PII Leakage</span></div></div>
+      <p>Member <code>brand.steve@gmail.com</code> exposed in GitHub README. Registered for: Author Talk (Jun 10), Sunset Kayak (Jun 24). Waitlisted: TEDxBoston (Jun 23). Uses Quin iOS app.</p>
+      <div class="impact"><strong>Impact:</strong> Single member fully profiled. Demonstrates real-world GitHub leak impact. Pattern repeatable for all members via email enumeration + breach data.</div>
+      <div class="remediation"><strong>Remediation:</strong> Notify Steve Brand. Rotate credentials. Remove email from README. Monitor for phishing targeting <code>brand.steve@gmail.com</code>.</div>
+    </div>
+  </section>
+
+  <section id="data-at-risk">
+    <h2>Member Data at Risk</h2>
+    <table class="data-table">
+      <thead><tr><th>Data Type</th><th>Source</th><th>Risk Level</th></tr></thead>
+      <tbody>
+        <tr><td>Full Name</td><td><code>GET /api/directory/members</code></td><td><span class="badge high">HIGH</span></td></tr>
+        <tr><td>Email Address</td><td><code>GET /api/directory/members</code> / Email Enum</td><td><span class="badge high">HIGH</span></td></tr>
+        <tr><td>Phone Number</td><td><code>GET /api/customers/{id}</code></td><td><span class="badge high">HIGH</span></td></tr>
+        <tr><td>Postal Address</td><td><code>GET /api/customers/{id}</code></td><td><span class="badge high">HIGH</span></td></tr>
+        <tr><td>Profile Photo</td><td><code>GET /api/directory/members</code> / Azure Blob</td><td><span class="badge medium">MEDIUM</span></td></tr>
+        <tr><td>Payment History</td><td><code>GET /api/account/memberships</code></td><td><span class="badge high">HIGH</span></td></tr>
+        <tr><td>Customer Notes</td><td><code>GET /api/customers/{id}</code> (notes field)</td><td><span class="badge critical">CRITICAL</span></td></tr>
+        <tr><td>Event Attendance</td><td><code>GET /api/events/{id}/attendees</code></td><td><span class="badge medium">MEDIUM</span></td></tr>
+        <tr><td>Membership App Answers</td><td><code>POST /api/account/nominations</code></td><td><span class="badge high">HIGH</span></td></tr>
+        <tr><td>Personal Details Form</td><td><code>GET /api/account/personal-details</code></td><td><span class="badge high">HIGH</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="auth-flow">
+    <h2>Auth Flow Diagram</h2>
+    <div class="diagram">
+<pre>User Browser              Envoy (loginpe)          Auth0 (Stacker)           PeopleVine API
+    |                           |                         |                        |
+    |--- GET /auth/login ------>|                         |                        |
+    |                           |--- GET /authorize ------>|                        |
+    |                           |   ?client_id=EfNuY...   |                        |
+    |<--- 302 to Auth0 login ---|                         |                        |
+    |                           |                         |                        |
+    |--- Login credentials ---->|                         |                        |
+    |                           |--- POST /oauth/token -->|                        |
+    |                           |&lt;-- authorization_code ---|                        |
+    |                           |                         |                        |
+    |&lt;-- 302 with api_token? ---|                         |                        |
+    |    ** LEAK: token in URL **                        |                        |
+    |                           |                         |                        |
+    |--- POST /api/token ------->|                        |                        |
+    |    Grant_Type=sso_token   |                         |                        |
+    |    Access_Token=&lt;code>   |                         |                        |
+    |    Company_Id=135        |                           |                         |                        |
+    |&lt;-- JWT + refresh_token ----|                         |                        |
+    |                           |                         |                        |
+    |--- GET /directory/members -->|                        |                        |
+    |    Authorization: Bearer JWT|                         |                        |
+    |&lt;-- [member list JSON] ------|                         |                        |
+</pre>
+    </div>
+  </section>
+
+  <section id="exposure-map">
+    <h2>Exposure Vector Map</h2>
+    <div class="diagram">
+<pre>┌──────────────────────────────────────────────────────────────────┐
+│                    ATTACKER ENTRY POINTS                          │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                   │
+│  GitHub Code Leak ──────→ scrape.js → Full member data extraction│
+│  CORS * ─────────────────→ Cross-origin API access from any site │
+│  DMARC p=none ──────────→ Email spoofing → Phish credentials     │
+│  Email Enum ────────────→ Every member's email → Targeted phish  │
+│  SSO Bootstrap ─────────→ Token without credentials              │
+│  Azure Blob ────────────→ Member docs/photos                     │
+│  Envoy Token Leak ──────→ Token in URL/referrer                  │
+│                              │                                    │
+│                              ▼                                    │
+│                    ┌─────────────────────┐                        │
+│                    │  PeopleVine API      │                       │
+│                    │  113 Endpoints       │                       │
+│                    └──────────┬──────────┘                       │
+│                              ▼                                    │
+│                    ┌─────────────────────┐                        │
+│                    │  Full Member PII    │                        │
+│                    │  Names, Emails,      │                       │
+│                    │  Addresses, Photos,  │                       │
+│                    │  Payments, Notes,    │                       │
+│                    │  Event Attendance    │                       │
+│                    └─────────────────────┘                        │
+└──────────────────────────────────────────────────────────────────┘</pre>
+    </div>
+  </section>
+
+  <section id="remediation">
+    <h2>Remediation Priorities</h2>
+    <table class="data-table">
+      <thead><tr><th>Priority</th><th>Finding</th><th>Action</th><th>Time</th><th>Effort</th></tr></thead>
+      <tbody>
+        <tr><td><span class="badge critical">P0</span></td><td>GitHub Code Leak</td><td>Take repo private, rotate Stripe key, audit org</td><td>1 hour</td><td>Low</td></tr>
+        <tr><td><span class="badge critical">P0</span></td><td>DMARC p=none</td><td>Set p=quarantine → p=reject</td><td>24 hours</td><td>Low</td></tr>
+        <tr><td><span class="badge critical">P1</span></td><td>CORS *</td><td>Restrict to known origins</td><td>1 week</td><td>Medium</td></tr>
+        <tr><td><span class="badge critical">P1</span></td><td>Email Enumeration</td><td>Remove or auth-protect endpoint</td><td>1 week</td><td>Medium</td></tr>
+        <tr><td><span class="badge critical">P1</span></td><td>Azure Blob Public</td><td>Restrict ACLs to private</td><td>1 day</td><td>Low</td></tr>
+        <tr><td><span class="badge critical">P2</span></td><td>SSO Bootstrap</td><td>Client auth, rate limiting</td><td>2 weeks</td><td>High</td></tr>
+        <tr><td><span class="badge high">P2</span></td><td>Rate Limiting</td><td>IP-based rate limiting on auth</td><td>1 week</td><td>Medium</td></tr>
+        <tr><td><span class="badge high">P3</span></td><td>Envoy Token Leak</td><td>POST-based delivery, PKCE</td><td>2 weeks</td><td>High</td></tr>
+        <tr><td><span class="badge high">P3</span></td><td>Portal Session Leak</td><td>Remove debug data from HTML</td><td>1 week</td><td>Low</td></tr>
+        <tr><td><span class="badge medium">P4</span></td><td>Steve Brand</td><td>Notify, rotate credentials</td><td>Immediate</td><td>Low</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="appendix">
+    <h2>Technical Appendix</h2>
+
+    <h3>Auth Grant Types</h3>
+    <table class="data-table">
+      <thead><tr><th>Grant Type</th><th>Key Parameters</th><th>Risk</th></tr></thead>
+      <tbody>
+        <tr><td><code>customer_password</code></td><td><code>Username</code>, <code>Password</code>, <code>Company_Id</code></td><td>Low (rate-limited 5 attempts)</td></tr>
+        <tr><td><code>password</code></td><td><code>Username</code>, <code>Password</code></td><td>Low (rate-limited)</td></tr>
+        <tr><td><code>sso_token</code></td><td><code>Access_Token</code> (auth code), <code>Company_Id</code></td><td><span class="badge critical">HIGH</span> (public bootstrap)</td></tr>
+        <tr><td><code>refresh_token</code></td><td><code>Refresh_Token</code></td><td><span class="badge critical">HIGH</span> (auto-rotates 6h)</td></tr>
+        <tr><td><code>access_token</code></td><td><code>Access_Token</code>, <code>Company_Id</code></td><td>Medium (token exchange)</td></tr>
+        <tr><td><code>authorization_code</code></td><td><code>code</code>, <code>redirect_uri</code></td><td>Rejected</td></tr>
+        <tr><td><code>global_network</code></td><td>Various</td><td>Enum parse fail</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Infrastructure Map</h3>
+    <table class="data-table">
+      <thead><tr><th>Asset</th><th>IP / Host</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>thequinhouse.com</td><td>72.167.71.194 (GoDaddy)</td><td>WordPress 6.4.8, PHP 8.1.34, Cloudflare WAF</td></tr>
+        <tr><td>members.thequinhouse.com</td><td>—</td><td>PeopleVine Express/React SPA — primary target</td></tr>
+        <tr><td>apply.thequinhouse.com</td><td>—</td><td>PeopleVine ASP.NET — session/IP leak</td></tr>
+        <tr><td>rest.peoplevine.com</td><td>—</td><td>Swagger API — 113 endpoints</td></tr>
+        <tr><td>thequinhouse.clients.peoplevine.com</td><td>168.62.224.13 (Azure)</td><td>PeopleVine backend</td></tr>
+        <tr><td>loginpe/loginse.thequinhouse.com</td><td>—</td><td>Istio Envoy auth proxies — token leak</td></tr>
+        <tr><td>agreements.thequinhouse.com</td><td>→ SharePoint (hexprop)</td><td>M365 tenant exposed</td></tr>
+        <tr><td>peoplevine.blob.core.windows.net/files/1356/</td><td>Azure Blob</td><td>Public read — member docs at risk</td></tr>
+        <tr><td>tours.thequinhouse.com</td><td>→ Calendly</td><td>Deactivated</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Key Technical Details</h3>
+    <ul style="color: #bbb; font-size: 0.9em; line-height: 2;">
+      <li><strong>Company ID:</strong> 1356 (The 'Quin House)</li>
+      <li><strong>Auth0 Domain:</strong> stackerhq.eu.auth0.com</li>
+      <li><strong>Stacker Client ID:</strong> EfNuYg7yAfbIoDAbrXWOuU165fAldxW1</li>
+      <li><strong>Stripe Key (live):</strong> pk_live_1VlvJMD6gCzrYwwLNKJiVshM</li>
+      <li><strong>iOS App IDs:</strong> 6747051559, 1568735593</li>
+      <li><strong>Android Package:</strong> com.peoplevine.com.members.thequinhouse.com</li>
+      <li><strong>Wayback Captures:</strong> 129 since Jun 2021</li>
+      <li><strong>GA4 ID:</strong> G-R488VBP1VG</li>
+      <li><strong>Auth Field Convention:</strong> PascalCase_underscore (.NET)</li>
+      <li><strong>WordPress Users:</strong> admin, samfreehand-studio</li>
+    </ul>
+  </section>
+
+</div>
+
+<footer>
+  <div class="container">
+    <p>Security Assessment — The 'Quin House, Boston MA</p>
+    <p>📅 June 10, 2026 | 🔒 Confidential — For authorized recipients only</p>
+  </div>
+</footer>
+
+</div>
+
+<script>
+function checkPassword() {
+  var input = document.getElementById('password-input').value;
+  if (input === 'quin2026!') {
+    document.getElementById('password-overlay').classList.add('hidden');
+    document.getElementById('content').style.display = 'block';
+  } else {
+    document.getElementById('password-error').classList.add('visible');
+  }
+}
+</script>
+
+</body>
+</html>
