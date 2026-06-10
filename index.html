@@ -131,7 +131,21 @@
   .pii-tag.photo { background: #fd79a833; color: #fd79a8; }
   .pii-tag.document { background: #00cec933; color: #00cec9; }
   footer { background: #14141f; border-top: 1px solid #2a2a3f; padding: 30px 0; text-align: center; color: #555; font-size: 0.85em; }
-  @media (max-width: 640px) {
+  .data-explorer-tabs { margin-bottom: 16px; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+  .tab-btn { padding: 8px 20px; background: #1a1a2e; border: 1px solid #2a2a3f; color: #888; border-radius: 6px; cursor: pointer; font-size: 0.9em; font-weight: 600; transition: all 0.2s; }
+  .tab-btn.active { background: #ff6b6b22; border-color: #ff6b6b; color: #ff6b6b; }
+  .tab-btn:hover { border-color: #3a3a5f; color: #ccc; }
+  .data-controls { background: #14141f; border: 1px solid #2a2a3f; border-radius: 8px; padding: 16px; margin-bottom: 20px; }
+  .filter-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .filter-row input[type="text"] { flex: 1; min-width: 180px; padding: 8px 12px; background: #1e1e2e; border: 1px solid #333; border-radius: 6px; color: #e0e0e0; font-size: 0.9em; outline: none; }
+  .filter-row input[type="text"]:focus { border-color: #ff6b6b; }
+  .filter-row select { padding: 8px 12px; background: #1e1e2e; border: 1px solid #333; border-radius: 6px; color: #e0e0e0; font-size: 0.9em; outline: none; cursor: pointer; }
+  .filter-row select:focus { border-color: #ff6b6b; }
+  .reset-btn { padding: 8px 16px; background: #333; border: none; color: #ccc; border-radius: 6px; cursor: pointer; font-size: 0.85em; }
+  .reset-btn:hover { background: #444; }
+  .stats-bar { margin-top: 12px; display: flex; gap: 20px; font-size: 0.85em; color: #666; }
+  .sortable { cursor: pointer; user-select: none; }
+  .sortable:hover { color: #ff6b6b !important; }
     header h1 { font-size: 1.6em; }
     .stats { grid-template-columns: 1fr 1fr; }
     .finding-card .header { flex-direction: column; align-items: stretch; }
@@ -299,42 +313,44 @@ SPF:   v=spf1 mx include:_spf.peoplevine.net include:spf.protection.outlook.com 
   </section>
 
   <section id="extracted-data">
-    <h2>Extracted Data</h2>
+    <h2>Extracted Data Explorer</h2>
 
-    <h3>📋 Steve Brand — Confirmed Member Attendance</h3>
-    <table class="data-table">
-      <thead><tr><th>Event</th><th>Date</th><th>Time</th><th>Location</th><th>Status</th></tr></thead>
-      <tbody>
-        <tr><td>Author Talk: "Checkmate" with Ben Mezrich</td><td>Jun 10</td><td>5:00-6:30 PM</td><td>The Pub</td><td><span class="badge medium">Confirmed</span></td></tr>
-        <tr><td>TEDxBoston: Visions of the Next 250</td><td>Jun 23</td><td>3:00-7:00 PM</td><td>GBH Studios</td><td><span class="badge high">Waitlisted</span></td></tr>
-        <tr><td>Member Meet Up: Sunset Kayak</td><td>Jun 24</td><td>5:00-8:00 PM</td><td>Paddle Boston</td><td><span class="badge medium">Confirmed</span></td></tr>
-      </tbody>
-    </table>
-    <p style="color:#888;font-size:0.85em;margin-bottom:30px;">Source: <code>brand.steve@gmail.com</code> iCal export from members.thequinhouse.com. Password: stored in iOS Keychain (member's personal device). <a href="https://github.com/nashbot67/quinhouse-assessment/raw/main/quinhouse-member-attendance-steve-brand.csv" style="color:#ff6b6b;">📥 Download CSV</a></p>
+    <div class="data-explorer-tabs">
+      <button class="tab-btn active" onclick="switchDataSet('steve')" id="tab-steve">📋 Steve Brand</button>
+      <button class="tab-btn" onclick="switchDataSet('events')" id="tab-events">📅 Events (45)</button>
+      <span style="color:#555;font-size:0.85em;margin-left:12px;">
+        <a href="https://github.com/nashbot67/quinhouse-assessment/raw/main/quinhouse-member-attendance-steve-brand.csv" style="color:#ff6b6b;">DL Steve</a>
+        &middot;
+        <a href="https://github.com/nashbot67/quinhouse-assessment/raw/main/quinhouse-events-full.csv" style="color:#ff6b6b;">DL Events</a>
+      </span>
+    </div>
 
-    <h3>📅 Full Public Events Calendar (Jun–Sep 2026)</h3>
-    <table class="data-table">
-      <thead><tr><th>Date</th><th>Event</th><th>Category</th><th>Price</th><th>Status</th><th>Capacity</th></tr></thead>
-      <tbody>
-        <tr><td>Jun 1</td><td>Taste of New England Farms</td><td>Food &amp; Beverage</td><td>Free</td><td>Available</td><td>—</td></tr>
-        <tr><td>Jun 9</td><td>Member Mingle</td><td>Member Mixer</td><td>Free</td><td>Available</td><td>4 left</td></tr>
-        <tr><td>Jun 9</td><td>Boston Music Project</td><td>Quin Impact Fund</td><td>Free</td><td>Available</td><td>—</td></tr>
-        <tr><td>Jun 9</td><td>Author's Circle Book Club</td><td>The Arts</td><td>Free</td><td>Available</td><td>2 left</td></tr>
-        <tr><td>Jun 10</td><td>Author Talk: "Checkmate" w/ Ben Mezrich</td><td>The Arts</td><td>Free</td><td>Available</td><td>3 left</td></tr>
-        <tr><td>Jun 13</td><td>Serendipity Brunch: Celebrating Pride</td><td>Member Mixer</td><td>$65</td><td>Waitlist</td><td>—</td></tr>
-        <tr><td>Jun 22</td><td>Summer Concert: Mumford &amp; Sons</td><td>The Arts</td><td>$607</td><td>Sold Out</td><td>—</td></tr>
-        <tr><td>Jun 23</td><td>Quin Suite: World Cup England v. Ghana</td><td>Sports</td><td>$2,944</td><td>Waitlist</td><td>—</td></tr>
-        <tr><td>Jun 23</td><td>Summer Concert: Rüfüs Du Sol</td><td>The Arts</td><td>$935</td><td>Sold Out</td><td>—</td></tr>
-        <tr><td>Jun 26</td><td>Quin Suite: World Cup France v. Norway</td><td>Sports</td><td>$3,327</td><td>Available</td><td>7 left</td></tr>
-        <tr><td>Jul 4</td><td>Venture: Wimbledon</td><td>Travel</td><td>$12,850</td><td>Waitlist</td><td>—</td></tr>
-        <tr><td>Jul 10-11</td><td>Summer Concert: Noah Kahan</td><td>The Arts</td><td>$654</td><td>Sold Out</td><td>—</td></tr>
-        <tr><td>Jul 19</td><td>World Cup: Championship Final</td><td>Sports</td><td>Free</td><td>Available</td><td>—</td></tr>
-        <tr><td>Aug 2</td><td>Summer Concert: Zac Brown Band</td><td>The Arts</td><td>$607</td><td>Available</td><td>12 left</td></tr>
-        <tr><td>Aug 14</td><td>Summer Concert: Chris Stapleton</td><td>The Arts</td><td>$607</td><td>Sold Out</td><td>—</td></tr>
-        <tr><td>Sep 25</td><td>Venture: Oktoberfest (Munich)</td><td>Travel</td><td>$5,607</td><td>Available</td><td>2 left</td></tr>
-      </tbody>
-    </table>
-    <p style="color:#888;font-size:0.85em;margin-bottom:30px;">45 total events published through Sep 2026. <a href="https://github.com/nashbot67/quinhouse-assessment/raw/main/quinhouse-events-full.csv" style="color:#ff6b6b;">📥 Download Full CSV</a> ($3K–$13K Quin Suite + concert tickets, $65 brunches, free talks)</p>
+    <div class="data-controls">
+      <div class="filter-row">
+        <input type="text" id="dataSearch" placeholder="Search all fields..." oninput="filterData()">
+        <select id="catFilter" onchange="filterData()"><option value="">All Categories</option></select>
+        <select id="statusFilter" onchange="filterData()"><option value="">All Statuses</option></select>
+        <button class="reset-btn" onclick="resetFilters()">Reset</button>
+      </div>
+      <div class="stats-bar">
+        <span id="recordCount">0 records</span>
+        <span id="pricerange" style="display:none;"></span>
+      </div>
+    </div>
+
+    <div id="steve-table" class="data-tab-content">
+      <table class="data-table" id="steveDataTable">
+        <thead><tr><th onclick="sortData('steve','event_title')" class="sortable">Event ↕</th><th onclick="sortData('steve','date')" class="sortable">Date ↕</th><th onclick="sortData('steve','time')" class="sortable">Time ↕</th><th>Location</th><th onclick="sortData('steve','status')" class="sortable">Status ↕</th><th>Price</th></tr></thead>
+        <tbody id="steveBody"></tbody>
+      </table>
+    </div>
+
+    <div id="events-table" class="data-tab-content" style="display:none;">
+      <table class="data-table" id="eventsDataTable">
+        <thead><tr><th onclick="sortData('events','Date')" class="sortable">Date ↕</th><th onclick="sortData('events','Event Title')" class="sortable">Event ↕</th><th>Category</th><th onclick="sortData('events','Price')" class="sortable">Price ↕</th><th onclick="sortData('events','Status')" class="sortable">Status ↕</th><th>Availability</th><th>Time</th></tr></thead>
+        <tbody id="eventsBody"></tbody>
+      </table>
+    </div>
   </section>
 
   <section id="data-at-risk">
@@ -502,8 +518,154 @@ function checkPassword() {
   if (input === 'quin2026!') {
     document.getElementById('password-overlay').classList.add('hidden');
     document.getElementById('content').style.display = 'block';
+    initExplorer();
   } else {
     document.getElementById('password-error').classList.add('visible');
+  }
+}
+
+// === CSV DATA EXPLORER ===
+var dataSets = {steve: [], events: []};
+var sortState = {steve: {key: null, asc: true}, events: {key: null, asc: true}};
+var currentTab = 'steve';
+
+function initExplorer() {
+  fetch('https://raw.githubusercontent.com/nashbot67/quinhouse-assessment/main/quinhouse-member-attendance-steve-brand.csv')
+    .then(r => r.text()).then(csv => { dataSets.steve = parseCSV(csv); populateFilters('steve'); renderTab('steve'); });
+  fetch('https://raw.githubusercontent.com/nashbot67/quinhouse-assessment/main/quinhouse-events-full.csv')
+    .then(r => r.text()).then(csv => { dataSets.events = parseCSV(csv); populateFilters('events'); renderTab('events'); });
+}
+
+function parseCSV(text) {
+  var lines = text.trim().split('\n');
+  if (lines.length < 2) return [];
+  var headers = lines[0].split(',').map(h => h.replace(/^"|"$/g, '').trim());
+  var rows = [];
+  for (var i = 1; i < lines.length; i++) {
+    var vals = parseCSVLine(lines[i], headers.length);
+    if (vals.length < headers.length) continue;
+    var row = {};
+    for (var j = 0; j < headers.length; j++) row[headers[j]] = (vals[j] || '').replace(/^"|"$/g, '').trim();
+    rows.push(row);
+  }
+  return rows;
+}
+
+function parseCSVLine(line, expected) {
+  var result = [], cur = '', inQ = false;
+  for (var i = 0; i < line.length; i++) {
+    var c = line[i], n = line[i+1];
+    if (inQ) { if (c === '"' && n === '"') { cur += '"'; i++; } else if (c === '"') inQ = false; else cur += c; }
+    else if (c === '"') inQ = true;
+    else if (c === ',') { result.push(cur); cur = ''; }
+    else cur += c;
+  }
+  result.push(cur);
+  return result;
+}
+
+function switchDataSet(name) {
+  currentTab = name;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.querySelectorAll('.data-tab-content').forEach(d => d.style.display = 'none');
+  document.getElementById(name + '-table').style.display = 'block';
+  renderTab(name);
+}
+
+function populateFilters(name) {
+  if (name !== 'events') return;
+  var cats = {}, statuses = {};
+  dataSets.events.forEach(function(r) {
+    if (r.Category) cats[r.Category] = (cats[r.Category]||0)+1;
+    if (r.Status) statuses[r.Status] = (statuses[r.Status]||0)+1;
+  });
+  var catSel = document.getElementById('catFilter');
+  catSel.innerHTML = '<option value="">All Categories</option>';
+  Object.keys(cats).sort().forEach(function(c) { catSel.innerHTML += '<option value="' + esc(c) + '">' + esc(c) + ' (' + cats[c] + ')</option>'; });
+  var statSel = document.getElementById('statusFilter');
+  statSel.innerHTML = '<option value="">All Statuses</option>';
+  Object.keys(statuses).sort().forEach(function(s) { statSel.innerHTML += '<option value="' + esc(s) + '">' + esc(s) + ' (' + statuses[s] + ')</option>'; });
+}
+
+function esc(s) { return s.replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
+function h(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function filterData() {
+  renderTab(currentTab);
+}
+
+function resetFilters() {
+  document.getElementById('dataSearch').value = '';
+  document.getElementById('catFilter').value = '';
+  document.getElementById('statusFilter').value = '';
+  renderTab(currentTab);
+}
+
+function sortData(name, key) {
+  if (sortState[name].key === key) sortState[name].asc = !sortState[name].asc;
+  else { sortState[name].key = key; sortState[name].asc = true; }
+  renderTab(name);
+}
+
+function renderTab(name) {
+  var data = dataSets[name] || [];
+  var search = (document.getElementById('dataSearch').value || '').toLowerCase();
+  var catFilter = document.getElementById('catFilter').value;
+  var statusFilter = document.getElementById('statusFilter').value;
+
+  // Apply filters
+  if (search || catFilter || statusFilter) {
+    data = data.filter(function(r) {
+      if (catFilter && r.Category !== catFilter) return false;
+      if (statusFilter && r.Status !== statusFilter) return false;
+      if (search) {
+        for (var k in r) { if (r[k].toLowerCase().indexOf(search) !== -1) return true; }
+        return false;
+      }
+      return true;
+    });
+  }
+
+  // Sort
+  var sk = sortState[name];
+  if (sk.key) {
+    data = data.slice().sort(function(a, b) {
+      var va = (a[sk.key]||'').toLowerCase(), vb = (b[sk.key]||'').toLowerCase();
+      if (va < vb) return sk.asc ? -1 : 1;
+      if (va > vb) return sk.asc ? 1 : -1;
+      return 0;
+    });
+  }
+
+  document.getElementById('recordCount').textContent = data.length + ' records';
+
+  var tbody = document.getElementById(name === 'steve' ? 'steveBody' : 'eventsBody');
+  tbody.innerHTML = '';
+
+  if (name === 'steve') {
+    data.forEach(function(r) {
+      var statusBadge = 'Available';
+      if ((r.status||'').toLowerCase() === 'confirmed') statusBadge = '<span class="badge medium">Confirmed</span>';
+      else if ((r.status||'').toLowerCase().indexOf('wait') !== -1) statusBadge = '<span class="badge high">Waitlisted</span>';
+      var row = '<tr><td>' + h(r.event_title) + '</td><td>' + h(r.date) + '</td><td>' + h(r.time) + '</td><td>' + h(r.location) + '</td><td>' + statusBadge + '</td><td>' + h(r.price) + '</td></tr>';
+      tbody.innerHTML += row;
+    });
+  } else {
+    data.forEach(function(r) {
+      var statusBadge = '';
+      var st = (r.Status||'').toLowerCase();
+      if (st === 'available') statusBadge = '<span class="badge medium">Available</span>';
+      else if (st.indexOf('sold') !== -1) statusBadge = '<span class="badge critical">Sold Out</span>';
+      else if (st.indexOf('wait') !== -1) statusBadge = '<span class="badge high">Waitlist</span>';
+      else statusBadge = '<span class="badge" style="border-color:#666;color:#aaa;">' + h(r.Status) + '</span>';
+      var times = r['Start Time'] && r['End Time'] ? h(r['Start Time'] + '-' + r['End Time']) : '';
+      if (!times && r.time) times = h(r.time);
+      var date = r.Date || '';
+      if (date && date.length === 10) { var p = date.split('-'); date = p[1] + '/' + p[2]; }
+      var row = '<tr><td>' + date + '</td><td>' + h(r['Event Title']||r.event_title) + '</td><td>' + h(r.Category) + '</td><td>' + h(r.Price) + '</td><td>' + statusBadge + '</td><td>' + h(r.Availability||'') + '</td><td>' + times + '</td></tr>';
+      tbody.innerHTML += row;
+    });
   }
 }
 </script>
