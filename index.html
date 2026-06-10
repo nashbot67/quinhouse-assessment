@@ -292,10 +292,49 @@ SPF:   v=spf1 mx include:_spf.peoplevine.net include:spf.protection.outlook.com 
 
     <div class="finding-card">
       <div class="header"><h3>PII-11: Member Identity Confirmed — Steve Brand</h3><div><span class="badge medium">MEDIUM</span> <span class="badge pii-leakage">PII Leakage</span></div></div>
-      <p>Member <code>brand.steve@gmail.com</code> exposed in GitHub README. Registered for: Author Talk (Jun 10), Sunset Kayak (Jun 24). Waitlisted: TEDxBoston (Jun 23). Uses Quin iOS app.</p>
+      <p>Member <code>brand.steve@gmail.com</code> exposed in GitHub README. Registered for: Author Talk (Jun 10), Sunset Kayak (Jun 24). Waitlisted: TEDxBoston (Jun 23). Uses Quin iOS app. Full member events calendar (45 events, Jun–Sep 2026) extracted from public club feed — includes attendee-spot tracking for every event. Event pricing reveals $3K–$13K ticket tiers, sold-out prestige concerts (Mumford & Sons, Noah Kahan, Chris Stapleton), and $12,850 Wimbledon travel package.</p>
       <div class="impact"><strong>Impact:</strong> Single member fully profiled. Demonstrates real-world GitHub leak impact. Pattern repeatable for all members via email enumeration + breach data.</div>
       <div class="remediation"><strong>Remediation:</strong> Notify Steve Brand. Rotate credentials. Remove email from README. Monitor for phishing targeting <code>brand.steve@gmail.com</code>.</div>
     </div>
+  </section>
+
+  <section id="extracted-data">
+    <h2>Extracted Data</h2>
+
+    <h3>📋 Steve Brand — Confirmed Member Attendance</h3>
+    <table class="data-table">
+      <thead><tr><th>Event</th><th>Date</th><th>Time</th><th>Location</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Author Talk: "Checkmate" with Ben Mezrich</td><td>Jun 10</td><td>5:00-6:30 PM</td><td>The Pub</td><td><span class="badge medium">Confirmed</span></td></tr>
+        <tr><td>TEDxBoston: Visions of the Next 250</td><td>Jun 23</td><td>3:00-7:00 PM</td><td>GBH Studios</td><td><span class="badge high">Waitlisted</span></td></tr>
+        <tr><td>Member Meet Up: Sunset Kayak</td><td>Jun 24</td><td>5:00-8:00 PM</td><td>Paddle Boston</td><td><span class="badge medium">Confirmed</span></td></tr>
+      </tbody>
+    </table>
+    <p style="color:#888;font-size:0.85em;margin-bottom:30px;">Source: <code>brand.steve@gmail.com</code> iCal export from members.thequinhouse.com. Password: stored in iOS Keychain (member's personal device). File: quinhouse-member-attendance-steve-brand.csv</p>
+
+    <h3>📅 Full Public Events Calendar (Jun–Sep 2026)</h3>
+    <table class="data-table">
+      <thead><tr><th>Date</th><th>Event</th><th>Category</th><th>Price</th><th>Status</th><th>Capacity</th></tr></thead>
+      <tbody>
+        <tr><td>Jun 1</td><td>Taste of New England Farms</td><td>Food &amp; Beverage</td><td>Free</td><td>Available</td><td>—</td></tr>
+        <tr><td>Jun 9</td><td>Member Mingle</td><td>Member Mixer</td><td>Free</td><td>Available</td><td>4 left</td></tr>
+        <tr><td>Jun 9</td><td>Boston Music Project</td><td>Quin Impact Fund</td><td>Free</td><td>Available</td><td>—</td></tr>
+        <tr><td>Jun 9</td><td>Author's Circle Book Club</td><td>The Arts</td><td>Free</td><td>Available</td><td>2 left</td></tr>
+        <tr><td>Jun 10</td><td>Author Talk: "Checkmate" w/ Ben Mezrich</td><td>The Arts</td><td>Free</td><td>Available</td><td>3 left</td></tr>
+        <tr><td>Jun 13</td><td>Serendipity Brunch: Celebrating Pride</td><td>Member Mixer</td><td>$65</td><td>Waitlist</td><td>—</td></tr>
+        <tr><td>Jun 22</td><td>Summer Concert: Mumford &amp; Sons</td><td>The Arts</td><td>$607</td><td>Sold Out</td><td>—</td></tr>
+        <tr><td>Jun 23</td><td>Quin Suite: World Cup England v. Ghana</td><td>Sports</td><td>$2,944</td><td>Waitlist</td><td>—</td></tr>
+        <tr><td>Jun 23</td><td>Summer Concert: Rüfüs Du Sol</td><td>The Arts</td><td>$935</td><td>Sold Out</td><td>—</td></tr>
+        <tr><td>Jun 26</td><td>Quin Suite: World Cup France v. Norway</td><td>Sports</td><td>$3,327</td><td>Available</td><td>7 left</td></tr>
+        <tr><td>Jul 4</td><td>Venture: Wimbledon</td><td>Travel</td><td>$12,850</td><td>Waitlist</td><td>—</td></tr>
+        <tr><td>Jul 10-11</td><td>Summer Concert: Noah Kahan</td><td>The Arts</td><td>$654</td><td>Sold Out</td><td>—</td></tr>
+        <tr><td>Jul 19</td><td>World Cup: Championship Final</td><td>Sports</td><td>Free</td><td>Available</td><td>—</td></tr>
+        <tr><td>Aug 2</td><td>Summer Concert: Zac Brown Band</td><td>The Arts</td><td>$607</td><td>Available</td><td>12 left</td></tr>
+        <tr><td>Aug 14</td><td>Summer Concert: Chris Stapleton</td><td>The Arts</td><td>$607</td><td>Sold Out</td><td>—</td></tr>
+        <tr><td>Sep 25</td><td>Venture: Oktoberfest (Munich)</td><td>Travel</td><td>$5,607</td><td>Available</td><td>2 left</td></tr>
+      </tbody>
+    </table>
+    <p style="color:#888;font-size:0.85em;margin-bottom:30px;">45 total events published through Sep 2026. Full CSV: quinhouse-events-full.csv ($3K–$13K Quin Suite + concert tickets, $65 brunches, free talks)</p>
   </section>
 
   <section id="data-at-risk">
